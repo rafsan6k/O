@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Surprise For You</title>
+    <style>
+        :root {
+            --primary-pink: #ff7597;
+            --secondary-pink: #ffb3c6;
+            --bg-gradient: linear-gradient(135deg, #ffe5ec 0%, #ffc2d1 100%);
+            --dark-pink: #fb6f92;
+            --text-color: #4a4a4a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: var(--text-color);
+            position: relative;
+        }
+
+        .screen {
+            position: absolute;
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 850px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+            pointer-events: none;
+        }
+
+        .screen.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+            position: relative;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Reusable Button Styling */
+        .btn {
+            background: var(--dark-pink);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(251, 111, 146, 0.4);
+            transition: all 0.3s ease;
+            outline: none;
+            margin-top: 25px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(251, 111, 146, 0.6);
+            background: #f45c81;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Screen 1: Envelope Welcome */
+        #screen-welcome .envelope-wrapper {
+            margin-bottom: 30px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .envelope {
+            width: 150px;
+            height: 100px;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: relative;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .envelope:hover {
+            transform: scale(1.05);
+        }
+
+        .envelope::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 50px 75px 0 75px;
+            border-color: #ffd6e0 transparent transparent transparent;
+            transform-origin: top;
+            transition: transform 0.4s ease;
+            z-index: 2;
+        }
+
+        .heart-badge {
+            font-size: 40px;
+            color: var(--dark-pink);
+            z-index: 3;
+            animation: pulse 1.5s infinite;
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4a4a4a;
+            margin-bottom: 10px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #7a7a7a;
+            font-style: italic;
+        }
+
+        /* Screen 2: Loader / Meter */
+        .meter-container {
+            width: 100%;
+            padding: 40px 20px;
+        }
+
+        .meter-title {
+            font-size: 20px;
+            font-style: italic;
+            color: #6a6a6a;
+            margin-bottom: 30px;
+        }
+
+        .percentage {
+            font-size: 64px;
+            font-weight: 800;
+            color: var(--dark-pink);
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--dark-pink);
+            border-radius: 10px;
+            transition: width 0.1s linear;
+        }
+
+        .meter-status {
+            margin-top: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #8a8a8a;
+            font-weight: bold;
+        }
+
+        /* Screen 3: Balloon Game */
+        .game-header {
+            margin-bottom: 20px;
+            z-index: 10;
+        }
+
+        .game-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #4a4a4a;
+        }
+
+        .game-subtitle {
+            font-size: 14px;
+            color: #7a7a7a;
+            margin-top: 5px;
+        }
+
+        .balloon-container {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+        }
+
+        .balloon {
+            position: absolute;
+            width: 55px;
+            height: 70px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer;
+            animation: floatUp 6s infinite ease-in-out;
+            bottom: -80px;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.15);
+            transition: transform 0.1s ease;
+        }
+
+        .balloon::after {
+            content: "▲";
+            position: absolute;
+            bottom: -8px;
+            left: 21px;
+            font-size: 10px;
+            color: inherit;
+        }
+
+        .balloon-string {
+            width: 1px;
+            height: 50px;
+            background: rgba(0,0,0,0.15);
+            position: absolute;
+            bottom: -56px;
+            left: 27px;
+        }
+
+        /* Polaroid Modal */
+        .polaroid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .polaroid-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .polaroid {
+            background: white;
+            padding: 16px 16px 24px 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            transform: scale(0.8) rotate(-5deg);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 280px;
+            border-radius: 2px;
+        }
+
+        .polaroid-overlay.active .polaroid {
+            transform: scale(1) rotate(0deg);
+        }
+
+        .polaroid-img-placeholder {
+            width: 100%;
+            height: 200px;
+            background: #fff0f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 60px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+        }
+
+        .polaroid-text {
+            margin-top: 15px;
+            font-size: 14px;
+            font-style: italic;
+            color: #5a5a5a;
+            line-height: 1.4;
+        }
+
+        /* Screen 4: Letter Wrapper */
+        .card-box {
+            background: white;
+            padding: 30px 24px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+        }
+
+        /* Screen 5: Final Letter view */
+        .letter-paper {
+            background: #fffafb;
+            border-radius: 12px;
+            padding: 25px 20px;
+            box-shadow: inset 0 0 20px rgba(255, 117, 151, 0.05), 0 4px 15px rgba(0,0,0,0.05);
+            text-align: left;
+            width: 100%;
+            max-height: 550px;
+            overflow-y: auto;
+            border-left: 4px solid var(--primary-pink);
+        }
+
+        .letter-salutation {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--dark-pink);
+            margin-bottom: 15px;
+        }
+
+        .letter-body {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #555;
+            min-height: 120px;
+        }
+
+        .letter-closing {
+            margin-top: 25px;
+            text-align: right;
+            font-style: italic;
+            font-size: 15px;
+            color: #666;
+        }
+
+        .illustration {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 50px;
+            animation: bounce 2s infinite;
+        }
+
+        /* Music Toggle Button styling */
+        .music-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .music-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Keyframe Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-550px) rotate(20deg); opacity: 0; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Confetti particles */
+        .confetti {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #ff0;
+            position: absolute;
+            top: -10px;
+            z-index: 1000;
+            border-radius: 50%;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(105vh) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Audio Element -->
+    <audio id="bg-music" src="music.mp3" loop></audio>
+
+    <!-- Floating Music Controller (Hidden initially) -->
+    <button id="music-toggle" class="music-btn hidden" onclick="toggleMusic()">🎵</button>
+
+    <!-- Screen 1: Welcome -->
+    <div id="screen-welcome" class="screen active">
+        <div class="envelope-wrapper" onclick="handleWelcomeClick()">
+            <div class="envelope">
+                <span class="heart-badge">❤️</span>
+            </div>
+        </div>
+        <h1 class="welcome-title">Someone made this just for you</h1>
+        <p class="welcome-subtitle">Tap to unwrap something sweet...</p>
+        <button class="btn" onclick="handleWelcomeClick()">Open</button>
+    </div>
+
+    <!-- Screen 2: Loader/Meter -->
+    <div id="screen-loader" class="screen hidden">
+        <div class="meter-container">
+            <p class="meter-title" id="loader-title">Measuring your perfection...</p>
+            <div class="percentage" id="percentage-counter">0%</div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+            <p class="meter-status" id="loader-status">Initializing...</p>
+        </div>
+        <button id="btn-reveal" class="btn hidden" onclick="nextScreen('screen-loader', 'screen-game')">Reveal What's Next</button>
+    </div>
+
+    <!-- Screen 3: Balloon Game -->
+    <div id="screen-game" class="screen hidden">
+        <div class="game-header">
+            <h2 class="game-title">Pop the Balloons!</h2>
+            <p class="game-subtitle">Each one holds a sweet secret reason</p>
+        </div>
+        
+        <div class="balloon-container" id="balloon-container">
+            <!-- Balloons will be spawned here via JavaScript -->
+        </div>
+
+        <!-- Polaroid Overlay Card inside the game screen -->
+        <div class="polaroid-overlay" id="polaroid-overlay" onclick="closePolaroid()">
+            <div class="polaroid" onclick="event.stopPropagation()">
+                <div class="polaroid-img-placeholder" id="polaroid-emoji">🐱</div>
+                <div class="polaroid-text" id="polaroid-text">You make every ordinary moment feel completely magical.</div>
+                <button class="btn" style="padding: 8px 20px; font-size: 14px; margin-top: 15px;" onclick="closePolaroid()">Pop Another</button>
+            </div>
+        </div>
+
+        <button id="btn-finish-game" class="btn hidden" onclick="nextScreen('screen-game', 'screen-intermission')">View Final Surprise</button>
+    </div>
+
+    <!-- Screen 4: Intermission / Box -->
+    <div id="screen-intermission" class="screen hidden">
+        <div class="card-box">
+            <h2 class="welcome-title" style="margin-bottom: 15px;">🎉 You Popped Them All!</h2>
+            <p class="welcome-subtitle" style="font-size: 15px; color: #555; margin-bottom: 10px;">Every single balloon carried a unique reason why you are completely irreplaceable.</p>
+            <p class="welcome-subtitle" style="font-size: 15px; color: #555; font-weight: bold;">Now it's time for the absolute biggest one.</p>
+            <button class="btn" onclick="nextScreen('screen-intermission', 'screen-letter')">Open Your Letter ✉️</button>
+        </div>
+    </div>
+
+    <!-- Screen 5: The Final Letter -->
+    <div id="screen-letter" class="screen hidden">
+        <div class="letter-paper">
+            <div class="letter-salutation">Dear Birthday Orpi, ✨</div>
+            <div class="letter-body" id="typing-letter"></div>
+            <div class="letter-closing">ইতি, ❤️<br><span style="font-weight: 600; color: var(--dark-pink);">তোমার ছোট্ট বন্ধু😞🤍</span></div>
+            <div class="illustration">💑</div>
+        </div>
+    </div>
+
+    <script>
+        const audio = document.getElementById('bg-music');
+        const musicToggle = document.getElementById('music-toggle');
+
+        // Handles click on the very first screen to allow playback through user interaction
+        function handleWelcomeClick() {
+            // Start audio playback smoothly
+            audio.play().then(() => {
+                musicToggle.classList.remove('hidden');
+                musicToggle.innerText = "🎵";
+            }).catch(err => {
+                console.log("Audio autoplay prevented or failed:", err);
+            });
+            
+            // Advance to loader screen
+            nextScreen('screen-welcome', 'screen-loader');
+        }
+
+        // Toggle music play/pause states manually
+        function toggleMusic() {
+            if (audio.paused) {
+                audio.play();
+                musicToggle.innerText = "🎵";
+            } else {
+                audio.pause();
+                musicToggle.innerText = "🔇";
+            }
+        }
+
+        // Transition handler between screens
+        function nextScreen(currentId, nextId) {
+            const current = document.getElementById(currentId);
+            const next = document.getElementById(nextId);
+            
+            current.classList.remove('active');
+            setTimeout(() => {
+                current.classList.add('hidden');
+                next.classList.remove('hidden');
+                setTimeout(() => {
+                    next.classList.add('active');
+                    // Trigger initialization if the screen needs it
+                    if (nextId === 'screen-loader') startLoader();
+                    if (nextId === 'screen-game') startGame();
+                    if (nextId === 'screen-letter') startTypingEffect();
+                }, 50);
+            }, 600);
+        }
+
+        // Screen 2 Loader logic
+        function startLoader() {
+            const counter = document.getElementById('percentage-counter');
+            const fill = document.getElementById('progress-fill');
+            const status = document.getElementById('loader-status');
+            const title = document.getElementById('loader-title');
+            const revealBtn = document.getElementById('btn-reveal');
+            
+            let count = 0;
+            const statuses = [
+                { limit: 20, text: 'Scanning vibe metrics...' },
+                { limit: 50, text: 'Measuring charm levels...' },
+                { limit: 80, text: 'Analyzing sweet factor...' },
+                { limit: 100, text: 'Maximum capacity reached...' }
+            ];
+
+            const interval = setInterval(() => {
+                count++;
+                if (count <= 100) {
+                    counter.innerText = count + '%';
+                    fill.style.width = count + '%';
+                    
+                    const currentStatus = statuses.find(s => count <= s.limit);
+                    if (currentStatus) status.innerText = currentStatus.text;
+                } else if (count === 101) {
+                    title.innerText = "Cuteness Overload!";
+                    counter.innerText = '∞%';
+                    status.innerText = 'Nobody should be this adorable.';
+                    status.style.color = '#fb6f92';
+                    clearInterval(interval);
+                    revealBtn.classList.remove('hidden');
+                }
+            }, 40);
+        }
+
+        // Screen 3 Game Logic
+        const secrets = [
+            { emoji: '🌸', text: 'Happy Birthday ছোট্ট বান্ধবী' },
+            { emoji: '🐱', text: 'তোমার সাথে কাটানে প্রতি মুহূর্ত বেস্ট ছিলো বেস্ট' },
+            { emoji: '✨', text: 'তোমার সেই ২৭ তারিখের হাসি আজও মনে পরে' },
+            { emoji: '🧸', text: 'নিজেকে অনেক বেশি ভাগ্যবান মনে হয় তোমার প্রেমে পরে' },
+            { emoji: '💖', text: 'তোমার ছবি যতবারই দেখি ততবারই নতুনকরে তোমার প্রেমে পরি' }
+        ];
+        
+        let poppedCount = 0;
+        const totalBalloons = 5;
+
+        function startGame() {
+            const container = document.getElementById('balloon-container');
+            container.innerHTML = ''; // reset
+            poppedCount = 0;
+
+            const colors = ['#ff7597', '#ffb3c6', '#fb6f92', '#ff8fab', '#ffc2d1'];
+
+            for (let i = 0; i < totalBalloons; i++) {
+                const balloon = document.createElement('div');
+                balloon.className = 'balloon';
+                balloon.style.backgroundColor = colors[i % colors.length];
+                balloon.style.color = colors[i % colors.length];
+                
+                // Random position and timing offsets
+                balloon.style.left = (15 + i * 16) + '%';
+                balloon.style.animationDelay = (i * 0.6) + 's';
+                balloon.style.animationDuration = (5 + Math.random() * 3) + 's';
+
+                const string = document.createElement('div');
+                string.className = 'balloon-string';
+                balloon.appendChild(string);
+
+                balloon.onclick = () => popBalloon(balloon, i);
+                container.appendChild(balloon);
+            }
+        }
+
+        function popBalloon(element, index) {
+            element.style.transform = 'scale(0)';
+            element.style.pointerEvents = 'none';
+            
+            // Show polaroid modal with information
+            setTimeout(() => {
+                element.remove();
+                showPolaroid(secrets[index]);
+            }, 150);
+        }
+
+        function showPolaroid(secret) {
+            document.getElementById('polaroid-emoji').innerText = secret.emoji;
+            document.getElementById('polaroid-text').innerText = secret.text;
+            document.getElementById('polaroid-overlay').classList.add('active');
+        }
+
+        function closePolaroid() {
+            document.getElementById('polaroid-overlay').classList.remove('active');
+            poppedCount++;
+            
+            if (poppedCount >= totalBalloons) {
+                document.getElementById('btn-finish-game').classList.remove('hidden');
+            }
+        }
+
+        // Screen 5 Typing Effect Letter
+        const letterText = "Happy Birthday Pori!🎂 অনেক অনেক বেশি শুভকামনা। পরিস্থিতি আর আগের মত নাই এখন কিন্তু এখনো সেই প্রথমদিনের মত ভালোবাসি তোমাকে। এগুলা আসলে বলা ঠিক না এখন। যাই হোক ভালো থাকো জীবনে, অনেক বেশি খুশি থাকো, আল্লাহ তোমার সকল মনের আশা পূরণ করুক। একদিন একজন বড় ডাক্তার হবা, uncle-aunty এর নাম উজ্জ্বল করবা। ঐদিন সবচেয়ে বেশি সেলিব্রেট করব আমি। তোমার সাথে কাটানো প্রত্যেকটা মূহুর্ত বেস্ট ছিলো। তোমাকে অনেক মিস করি। আমাদেরকে অনেক মিস করি। ভালো থেকো দোয়া রইলো অনেক বেশি।✨";
+
+        function startTypingEffect() {
+            const container = document.getElementById('typing-letter');
+            container.innerHTML = '';
+            let i = 0;
+            
+            function type() {
+                if (i < letterText.length) {
+                    container.innerHTML += letterText.charAt(i);
+                    i++;
+                    setTimeout(type, 35);
+                } else {
+                    startConfetti();
+                }
+            }
+            type();
+        }
+
+        // Beautiful Confetti Celebrations
+        function startConfetti() {
+            for (let i = 0; i < 75; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = ['#ff7597', '#ffb3c6', '#fb6f92', '#ffd166', '#06d6a0', '#118ab2'][Math.floor(Math.random() * 6)];
+                confetti.style.animationDuration = (2 + Math.random() * 3) + 's';
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.width = confetti.style.height = (5 + Math.random() * 6) + 'px';
+                document.body.appendChild(confetti);
+                
+                // Cleanup
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+    </script>
+</body>
+</html>
